@@ -33,33 +33,34 @@ IN THE SOFTWARE.
 ******************************************************************/
 
 // How many seconds to calculate
-float secondsToRunSimulation = 1000;  
+float secondsToRunSimulation = 2000;  
 
 // Spacing between measurements in seconds must be less than secondsToRunSimulation
-float deltaTime = .1;              
+float deltaTime = .05;              
 
-// Initial Amplitudes 
-float A1 = 100; 
-float A2 = 100; 
-float A3 = 100; 
-float A4 = 100;
+// Initial Amplitudes
+// These are scaled so the ratio to each other is all that matters in size
+float A1 = 500; 
+float A2 = 500; 
+float A3 = 200; 
+float A4 = 500;
 
-// Frequencies in Hz
+// Frequencies
 float f1 = 0.5;
 float f2 = 0.2;
 float f3 = 0.1;
 float f4 = 0.4;
 
-// Phase offsets in degrees
-float p1 = 45;
-float p2 = 45;
-float p3 = 87;
-float p4 = 90;
+// Phase offsets in radians
+float p1 = PI/2;
+float p2 = PI/2;
+float p3 = PI;
+float p4 = PI/8;
 
-// Damping terms
+// Damping terms. Keep these small to keep the oscillations alive.
 float d1 = 0.0001;
 float d2 = 0.0021;
-float d3 = 0.0054;
+float d3 = 0.4;
 float d4 = 0.0001;
 
 /*****************************************************************
@@ -74,7 +75,7 @@ float yMax = A3+A4;
 
 void setup() {
   size(1000, 1000);  
-  strokeWeight(1);
+  strokeWeight(1.2);
   background(0);
   noLoop();  // Run once and stop
 }
@@ -87,18 +88,21 @@ void draw() {
     float y = calculateHarmonographPoint_Y(t);
     harmPoints[i] = new HarmPoint(x,y);
   }
-  
-  // Plot points
+      
     for(int i = 0; i<numberOfSamples-1 ; i++){      
-      stroke(map(i,0,numberOfSamples,0,255),0,255-map(i,0,numberOfSamples,0,255));
+      // Line colors defined here
+      stroke(
+        map(i,0,numberOfSamples,0,255),    // Red Value    0-255
+        0,                                 // Green Value  0-255
+        255-map(i,0,numberOfSamples,0,255) // Blue Value   0-255
+        );
+      // Draw lines
       line(harmPoints[i].x,harmPoints[i].y,harmPoints[i+1].x,harmPoints[i+1].y);
   }
 }
 
-float convertToRadians(float deg){
-  return deg*PI/180.0;
-}
-
+// Harmonograph point class. 
+// May add some additional parameters in here
 class HarmPoint {
   float x;
   float y;
@@ -110,22 +114,20 @@ class HarmPoint {
 
 float calculateHarmonographPoint_X(float t){  
     //x(t)= A1*sin(t*f1+p1)*exp(-d1*t) + A2*sin(t*f2+p2)*exp(-d2*t)
-    float freqPlusPhaseRadians_1 = t*f1+convertToRadians(p1);
-    float freqPlusPhaseRadians_2 = t*f2+convertToRadians(p2);
-    float x = A1*sin(freqPlusPhaseRadians_1)*exp(-1*d1*t) +
-              A2*sin(freqPlusPhaseRadians_2)*exp(-1*d2*t);
+    float x = A1*sin(t*f1+p1)*exp(-1*d1*t) +
+              A2*sin(t*f2+p2)*exp(-1*d2*t);
               
-    // Map the reutrn value to the screen limits
+    // Map the return value to the screen limits
     x = map(x,-xMax,xMax,0,width);
     return x; //<>//
 }
 
 float calculateHarmonographPoint_Y(float t){  
     //y(t)= A3*sin(t*f3+p3)*exp(-d3*t) + A4*sin(t*f4+p4)*exp(-d4*t)
-    float freqPlusPhaseRadians_3 = t*f3+convertToRadians(p3);
-    float freqPlusPhaseRadians_4 = t*f4+convertToRadians(p4);
-    float y = A3*sin(freqPlusPhaseRadians_3)*exp(-1*d3*t) +
-              A4*sin(freqPlusPhaseRadians_4)*exp(-1*d4*t);              
+    float y = A3*sin(t*f3+p3)*exp(-1*d3*t) +
+              A4*sin(t*f4+p4)*exp(-1*d4*t);   
+              
+    // Map the return value to the screen limits
     y = map(y,-yMax,yMax,0,height);
     return y;
 }
